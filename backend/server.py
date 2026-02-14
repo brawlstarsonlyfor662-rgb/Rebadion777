@@ -500,6 +500,139 @@ async def complete_boss(
     
     return {"success": True, "xp_gained": xp_gained, "level_up": new_level > user.level}
 
+# ============= ADMIN ROUTES (Hidden) =============
+# Helper function for admin auth
+async def get_current_admin(credentials: HTTPAuthorizationCredentials = Depends(security)) -> Admin:
+    token = credentials.credentials
+    from auth import decode_token
+    payload = decode_token(token)
+    admin_id = payload.get("admin_id")
+    if admin_id is None:
+        raise HTTPException(status_code=401, detail="Invalid admin credentials")
+    
+    admin_data = await db.admins.find_one({"id": admin_id}, {"_id": 0})
+    if not admin_data:
+        raise HTTPException(status_code=401, detail="Admin not found")
+    
+    if isinstance(admin_data.get('created_at'), str):
+        admin_data['created_at'] = datetime.fromisoformat(admin_data['created_at'])
+    
+    return Admin(**admin_data)
+
+@api_router.post("/system/access", response_model=AdminToken)
+async def admin_login(login_data: AdminLogin):
+    """Hidden admin login endpoint"""
+    admin_data = await db.admins.find_one({"username": login_data.username}, {"_id": 0})
+    if not admin_data:
+        raise HTTPException(status_code=401, detail="Access denied")
+    
+    if not verify_password(login_data.password, admin_data['hashed_password']):
+        raise HTTPException(status_code=401, detail="Access denied")
+    
+    if isinstance(admin_data.get('created_at'), str):
+        admin_data['created_at'] = datetime.fromisoformat(admin_data['created_at'])
+    
+    admin = Admin(**{k: v for k, v in admin_data.items() if k != 'hashed_password'})
+    access_token = create_access_token({"admin_id": admin.id})
+    
+    return AdminToken(access_token=access_token, token_type="bearer", admin=admin)
+
+@api_router.get("/system/status")
+async def admin_dashboard(credentials: HTTPAuthorizationCredentials = Depends(security)):
+    """Admin dashboard data"""
+    admin = await get_current_admin(credentials)
+    
+    # Get system stats
+    total_users = await db.users.count_documents({})
+    total_tasks = await db.tasks.count_documents({})
+    completed_tasks = await db.tasks.count_documents({"completed": True})
+    total_focus_time = await db.focus_sessions.aggregate([
+        {"$group": {"_id": None, "total": {"$sum": "$duration_minutes"}}}
+    ]).to_list(1)
+    
+    # Get users list with stats
+    users = await db.users.find({}, {"_id": 0, "hashed_password": 0}).sort("created_at", -1).to_list(100)
+    
+    # Recent activity
+    recent_tasks = await db.tasks.find(
+        {"completed": True},
+        {"_id": 0}
+    ).sort("completed_at", -1).limit(20).to_list(20)
+    
+    # Active users (last 24 hours)
+    yesterday = (datetime.now(timezone.utc) - timedelta(days=1)).isoformat()
+    active_users = await db.users.count_documents({
+        "last_active": {"$gte": yesterday}
+    })
+    
+    return {
+        "total_users": total_users,
+        "active_users_24h": active_users,
+        "total_tasks": total_tasks,
+        "completed_tasks": completed_tasks,
+        "total_focus_minutes": total_focus_time[0]['total'] if total_focus_time else 0,
+        "users": users,
+        "recent_activity": recent_tasks,
+        "admin": {"username": admin.username, "is_super_admin": admin.is_super_admin}
+    }
+
+@api_router.post("/system/admin/create")
+async def create_new_admin(
+    data: AdminCreateRequest,
+    credentials: HTTPAuthorizationCredentials = Depends(security)
+):
+    """Create a new admin (only super admins can do this)"""
+    admin = await get_current_admin(credentials)
+    
+    if not admin.is_super_admin:
+        raise HTTPException(status_code=403, detail="Only super admins can create new admins")
+    
+    # Check if admin already exists
+    existing = await db.admins.find_one({"username": data.username})
+    if existing:
+        raise HTTPException(status_code=400, detail="Admin username already exists")
+    
+    # Create new admin
+    new_admin = Admin(
+        username=data.username,
+        created_by=admin.id,
+        is_super_admin=False
+    )
+    
+    admin_dict = new_admin.model_dump()
+    admin_dict['hashed_password'] = get_password_hash(data.password)
+    admin_dict['created_at'] = admin_dict['created_at'].isoformat()
+    
+    await db.admins.insert_one(admin_dict)
+    
+    return {"success": True, "message": f"Admin {data.username} created"}
+
+@api_router.get("/system/admins")
+async def list_admins(credentials: HTTPAuthorizationCredentials = Depends(security)):
+    """List all admins"""
+    admin = await get_current_admin(credentials)
+    
+    admins = await db.admins.find({}, {"_id": 0, "hashed_password": 0}).to_list(100)
+    return {"admins": admins}
+
+@api_router.delete("/system/users/{user_id}")
+async def delete_user(
+    user_id: str,
+    credentials: HTTPAuthorizationCredentials = Depends(security)
+):
+    """Delete a user (admin only)"""
+    admin = await get_current_admin(credentials)
+    
+    # Delete user and all related data
+    await db.users.delete_one({"id": user_id})
+    await db.tasks.delete_many({"user_id": user_id})
+    await db.skill_trees.delete_many({"user_id": user_id})
+    await db.achievements.delete_many({"user_id": user_id})
+    await db.focus_sessions.delete_many({"user_id": user_id})
+    await db.boss_challenges.delete_many({"user_id": user_id})
+    
+    return {"success": True, "message": "User deleted"}
+
 # Include the router
 app.include_router(api_router)
 
