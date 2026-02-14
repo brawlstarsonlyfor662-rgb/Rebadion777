@@ -47,9 +47,9 @@ Build a dopamine-optimized AI productivity and performance system for students a
 
 ## Technical Stack
 - **Frontend:** React, Tailwind CSS, Framer Motion, Recharts
-- **Backend:** FastAPI (Python), MongoDB
+- **Backend:** Fastify (Node.js), MongoDB
 - **AI:** OpenAI GPT-5.2 via Emergent LLM Key
-- **Auth:** JWT tokens with bcrypt password hashing
+- **Auth:** JWT tokens with bcryptjs password hashing
 
 ## Key API Endpoints
 - `/api/auth/signup`, `/api/auth/login`, `/api/auth/me`
