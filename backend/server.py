@@ -13,7 +13,8 @@ from models import (
     User, UserCreate, UserLogin, Token, Task, TaskCreate,
     SkillTreeProgress, Achievement, FocusSession, FocusSessionCreate,
     FocusSessionEnd, ChatMessage, CoachChatRequest, CoachChatResponse,
-    AnalyticsData, BossChallenge
+    AnalyticsData, BossChallenge, Admin, AdminCreate, AdminLogin,
+    AdminToken, AdminCreateRequest
 )
 from auth import (
     verify_password, get_password_hash, create_access_token,
