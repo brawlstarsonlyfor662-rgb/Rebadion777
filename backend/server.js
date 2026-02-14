@@ -192,9 +192,22 @@ const suggestOptimalTime = (focusSessions) => {
 // Helper to get current user
 const getCurrentUser = async (request) => {
   const userId = request.user.userId;
-  const user = await db.collection('users').findOne({ id: userId }, { projection: { _id: 0, hashedPassword: 0 } });
+  const user = await db.collection('users').findOne({ id: userId }, { projection: { _id: 0 } });
   if (!user) throw { statusCode: 401, message: 'User not found' };
-  return user;
+  // Normalize field names (support both camelCase and snake_case from old Python data)
+  return {
+    id: user.id,
+    email: user.email,
+    username: user.username,
+    level: user.level,
+    xp: user.xp,
+    totalXp: user.totalXp ?? user.total_xp ?? 0,
+    currentStreak: user.currentStreak ?? user.current_streak ?? 0,
+    longestStreak: user.longestStreak ?? user.longest_streak ?? 0,
+    disciplineScore: user.disciplineScore ?? user.discipline_score ?? 50,
+    createdAt: user.createdAt ?? user.created_at,
+    lastActive: user.lastActive ?? user.last_active
+  };
 };
 
 // Helper to get current admin
