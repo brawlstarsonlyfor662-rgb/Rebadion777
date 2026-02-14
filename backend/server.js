@@ -822,12 +822,15 @@ fastify.post('/api/system/access', async (request, reply) => {
   const admin = await db.collection('admins').findOne({ username });
   if (!admin) return reply.status(401).send({ detail: 'Access denied' });
   
-  const valid = await verifyPassword(password, admin.hashedPassword);
+  // Support both camelCase and snake_case password field
+  const hashedPwd = admin.hashedPassword || admin.hashed_password;
+  const valid = await verifyPassword(password, hashedPwd);
   if (!valid) return reply.status(401).send({ detail: 'Access denied' });
   
   const token = fastify.jwt.sign({ adminId: admin.id });
-  const { hashedPassword, _id, ...adminResponse } = admin;
-  return { access_token: token, token_type: 'bearer', admin: { ...adminResponse, is_super_admin: admin.isSuperAdmin } };
+  // Support both naming conventions for isSuperAdmin
+  const isSuperAdmin = admin.isSuperAdmin ?? admin.is_super_admin ?? false;
+  return { access_token: token, token_type: 'bearer', admin: { id: admin.id, username: admin.username, is_super_admin: isSuperAdmin } };
 });
 
 fastify.get('/api/system/status', { preHandler: [fastify.authenticate] }, async (request) => {
