@@ -33,6 +33,34 @@ class Token(BaseModel):
     token_type: str
     user: User
 
+# Admin Models
+class AdminBase(BaseModel):
+    username: str
+
+class AdminCreate(AdminBase):
+    password: str
+
+class Admin(AdminBase):
+    model_config = ConfigDict(extra="ignore")
+    
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    created_by: Optional[str] = None
+    is_super_admin: bool = False
+
+class AdminLogin(BaseModel):
+    username: str
+    password: str
+
+class AdminToken(BaseModel):
+    access_token: str
+    token_type: str
+    admin: Admin
+
+class AdminCreateRequest(BaseModel):
+    username: str
+    password: str
+
 # Task Models
 class TaskCreate(BaseModel):
     title: str
