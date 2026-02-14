@@ -165,8 +165,8 @@ const Auth = () => {
               )}
             </AnimatePresence>
 
-          {/* Form */}
-          <form onSubmit={handleSubmit} className="space-y-6" data-testid="auth-form">
+            {/* Form */}
+            <form onSubmit={handleSubmit} className="space-y-6" data-testid="auth-form">
             {!isLogin && (
               <div>
                 <label className="block text-sm font-mono uppercase tracking-wider text-[#94A3B8] mb-2">
