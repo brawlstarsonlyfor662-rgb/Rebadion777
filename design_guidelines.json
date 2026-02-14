@@ -1,0 +1,144 @@
+{
+  "identity": {
+    "name": "Level Up System",
+    "persona": "The Architect of Digital Discipline",
+    "tone": "Electric, Tactical, Gamified, High-Energy",
+    "aesthetic": "Cyberpunk RPG HUD mixed with Anime Aesthetics",
+    "audience": "Gen Z/Young Millennial High Achievers (16-28)"
+  },
+  "typography": {
+    "font_family_heading": "Orbitron, sans-serif",
+    "font_family_body": "Inter, sans-serif",
+    "font_family_code": "JetBrains Mono, monospace",
+    "font_family_display": "Rajdhani, sans-serif",
+    "scaling": {
+      "h1": "text-5xl md:text-7xl font-black tracking-tighter uppercase",
+      "h2": "text-4xl md:text-5xl font-bold tracking-tight uppercase",
+      "h3": "text-2xl md:text-3xl font-bold tracking-wide",
+      "body": "text-base md:text-lg leading-relaxed",
+      "caption": "text-xs md:text-sm font-mono tracking-widest text-muted-foreground uppercase"
+    }
+  },
+  "colors": {
+    "theme": "dark",
+    "palette": {
+      "background": {
+        "primary": "#050505",
+        "secondary": "#0A0A0F",
+        "card": "#121218",
+        "overlay": "rgba(5, 5, 5, 0.8)"
+      },
+      "text": {
+        "primary": "#FFFFFF",
+        "secondary": "#94A3B8",
+        "muted": "#475569"
+      },
+      "brand": {
+        "primary": "#00F0FF",
+        "secondary": "#7000FF",
+        "accent": "#FF0099"
+      },
+      "functional": {
+        "success": "#39FF14",
+        "warning": "#FAFF00",
+        "error": "#FF2A6D",
+        "info": "#00F0FF"
+      },
+      "gradients": {
+        "hero": "linear-gradient(135deg, #00F0FF 0%, #7000FF 100%)",
+        "card": "linear-gradient(180deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.01) 100%)",
+        "glow": "radial-gradient(circle at center, rgba(0, 240, 255, 0.15) 0%, transparent 70%)"
+      }
+    }
+  },
+  "layout_strategy": {
+    "grid_system": "Bento Grid (CSS Grid)",
+    "container_width": "max-w-7xl mx-auto px-4 sm:px-6 lg:px-8",
+    "spacing": {
+      "section_gap": "gap-12 md:gap-24",
+      "element_gap": "gap-4 md:gap-8",
+      "padding_standard": "p-6 md:p-8"
+    },
+    "z_index": {
+      "background": "-10",
+      "content": "10",
+      "overlay": "50",
+      "modal": "100",
+      "toast": "200"
+    }
+  },
+  "component_styles": {
+    "buttons": {
+      "primary": "bg-primary text-black font-bold uppercase tracking-wider hover:bg-primary/90 hover:scale-105 transition-all duration-300 shadow-[0_0_20px_rgba(0,240,255,0.5)] clip-path-polygon-[10px_0,100%_0,100%_calc(100%-10px),calc(100%-10px)_100%,0_100%,0_10px]",
+      "secondary": "bg-transparent border border-primary/50 text-primary font-bold uppercase tracking-wider hover:bg-primary/10 transition-all duration-300",
+      "ghost": "hover:bg-white/5 text-muted-foreground hover:text-white transition-colors"
+    },
+    "cards": {
+      "default": "bg-card/50 backdrop-blur-md border border-white/10 rounded-xl overflow-hidden relative group hover:border-primary/50 transition-colors duration-300",
+      "glass": "bg-black/40 backdrop-blur-xl border border-white/10 shadow-2xl",
+      "holographic": "bg-gradient-to-b from-white/5 to-transparent border border-white/10 relative overflow-hidden before:absolute before:inset-0 before:bg-gradient-to-r before:from-transparent before:via-white/5 before:to-transparent before:-translate-x-full group-hover:before:translate-x-full before:transition-transform before:duration-1000"
+    },
+    "inputs": {
+      "default": "bg-secondary/50 border-white/10 focus:border-primary focus:ring-1 focus:ring-primary text-white placeholder:text-white/20 rounded-md h-12 px-4"
+    }
+  },
+  "visual_enhancers": {
+    "borders": "1px solid rgba(255, 255, 255, 0.1)",
+    "shadows": {
+      "neon_blue": "0 0 10px rgba(0, 240, 255, 0.5), 0 0 20px rgba(0, 240, 255, 0.3)",
+      "neon_pink": "0 0 10px rgba(255, 0, 153, 0.5), 0 0 20px rgba(255, 0, 153, 0.3)"
+    },
+    "effects": {
+      "glass": "backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);",
+      "noise": "url(\"data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.05'/%3E%3C/svg%3E\")",
+      "glitch_animation": "@keyframes glitch { 0% { transform: translate(0) } 20% { transform: translate(-2px, 2px) } 40% { transform: translate(-2px, -2px) } 60% { transform: translate(2px, 2px) } 80% { transform: translate(2px, -2px) } 100% { transform: translate(0) } }"
+    }
+  },
+  "motion_guidelines": {
+    "library": "framer-motion",
+    "defaults": {
+      "duration": 0.3,
+      "ease": "easeOut"
+    },
+    "types": {
+      "page_transition": {
+        "initial": { "opacity": 0, "y": 20 },
+        "animate": { "opacity": 1, "y": 0 },
+        "exit": { "opacity": 0, "y": -20 }
+      },
+      "stagger": {
+        "container": { "hidden": { "opacity": 0 }, "show": { "opacity": 1, "transition": { "staggerChildren": 0.1 } } },
+        "item": { "hidden": { "opacity": 0, "y": 10 }, "show": { "opacity": 1, "y": 0 } }
+      },
+      "hover_scale": {
+        "scale": 1.02,
+        "transition": { "type": "spring", "stiffness": 400, "damping": 10 }
+      }
+    }
+  },
+  "assets": {
+    "images": {
+      "avatar": "https://images.unsplash.com/photo-1656229181541-a42184b5625c?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NTY2NzB8MHwxfHNlYXJjaHwyfHxjeWJlcnB1bmslMjBhbmltZSUyMGNoYXJhY3RlciUyMHBvcnRyYWl0fGVufDB8fHx8MTc3MTA1MTY0N3ww&ixlib=rb-4.1.0&q=85",
+      "boss_enemy": "https://images.unsplash.com/photo-1738054040587-3650e0eae34c?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NDQ2Mzl8MHwxfHNlYXJjaHwzfHxmdXR1cmlzdGljJTIwcm9ib3QlMjBlbmVteSUyMGJvc3N8ZW58MHx8fHwxNzcxMDUxNjQ4fDA&ixlib=rb-4.1.0&q=85",
+      "background_city": "https://images.unsplash.com/photo-1701378102703-928e273c0f2d?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjAzOTB8MHwxfHNlYXJjaHwzfHxuZW9uJTIwY3liZXJwdW5rJTIwY2l0eSUyMGJhY2tncm91bmR8ZW58MHx8fHwxNzcxMDUxNjQ4fDA&ixlib=rb-4.1.0&q=85"
+    },
+    "icons": {
+      "library": "lucide-react",
+      "style": "stroke-width: 1.5px"
+    }
+  },
+  "universal_guidelines": [
+    "ALWAYS use 'framer-motion' for animations. Do not use standard CSS transitions for complex movements.",
+    "Dark Mode is MANDATORY and DEFAULT. The app should feel like a nighttime cyberpunk interface.",
+    "Use 'Orbitron' font for all H1, H2, H3 headers to establish the Sci-Fi/Gaming mood.",
+    "Borders should rarely be solid. Use alpha transparency (white/10 or white/20) to create depth.",
+    "Gradients should be subtle and dark, or used as 'glow' effects behind elements. No full-screen rainbow gradients.",
+    "Interactive elements MUST provide feedback. Hover = Glow/Scale. Click = Pulse/Glitch.",
+    "All data (analytics, stats) should look like a HUD (Heads-Up Display). Use mono fonts for numbers.",
+    "Use the provided image URLs for placeholders where appropriate.",
+    "Ensure high contrast for text. Neon colors are for accents, not for body text.",
+    "Install 'framer-motion' if not present: 'yarn add framer-motion'",
+    "Install 'recharts' for analytics graphs: 'yarn add recharts'",
+    "Use 'sonner' for notifications, styled to look like system alerts."
+  ]
+}
