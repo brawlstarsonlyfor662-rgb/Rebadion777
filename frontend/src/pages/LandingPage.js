@@ -3,10 +3,30 @@ import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { 
   Zap, Target, Brain, TrendingUp, Sparkles, Flame, 
-  Swords, Trophy, MessageSquare, BarChart3 
+  Swords, Trophy, MessageSquare, BarChart3, Shield 
 } from 'lucide-react';
+import axios from 'axios';
 
 const LandingPage = () => {
+  const [stats, setStats] = React.useState({
+    total_users: 0,
+    completed_tasks: 0,
+    success_rate: 0
+  });
+  const [showLearnMore, setShowLearnMore] = React.useState(false);
+
+  React.useEffect(() => {
+    fetchStats();
+  }, []);
+
+  const fetchStats = async () => {
+    try {
+      const response = await axios.get('/public/stats');
+      setStats(response.data);
+    } catch (error) {
+      console.error('Failed to fetch stats:', error);
+    }
+  };
   return (
     <div className="min-h-screen bg-[#050505] text-white overflow-hidden">
       {/* Hero Section */}
