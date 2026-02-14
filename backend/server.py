@@ -46,6 +46,23 @@ ai_coach = AICoach()
 async def get_db():
     return db
 
+# Public Stats Route (for landing page)
+@api_router.get("/public/stats")
+async def get_public_stats():
+    """Get public statistics for landing page"""
+    total_users = await db.users.count_documents({})
+    total_tasks = await db.tasks.count_documents({"completed": True})
+    
+    # Calculate success rate (completed vs total tasks)
+    all_tasks = await db.tasks.count_documents({})
+    success_rate = round((total_tasks / all_tasks * 100) if all_tasks > 0 else 95)
+    
+    return {
+        "total_users": total_users,
+        "completed_tasks": total_tasks,
+        "success_rate": success_rate
+    }
+
 # Auth Routes
 @api_router.post("/auth/signup", response_model=Token)
 async def signup(user_data: UserCreate):
