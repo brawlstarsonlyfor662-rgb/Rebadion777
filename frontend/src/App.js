@@ -105,6 +105,7 @@ function App() {
               <Route path="/focus" element={user ? <FocusMode /> : <Navigate to="/" />} />
               <Route path="/analytics" element={user ? <Analytics /> : <Navigate to="/" />} />
               <Route path="/profile" element={user ? <Profile /> : <Navigate to="/" />} />
+              <Route path="/ai-study" element={user ? <AIStudyAssistant /> : <Navigate to="/" />} />
               {/* Hidden admin route */}
               <Route path="/system-control" element={<SystemControl />} />
             </Routes>
