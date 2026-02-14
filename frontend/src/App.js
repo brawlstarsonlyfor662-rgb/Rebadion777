@@ -16,6 +16,7 @@ import AICoach from './pages/AICoach';
 import FocusMode from './pages/FocusMode';
 import Analytics from './pages/Analytics';
 import Profile from './pages/Profile';
+import SystemControl from './pages/SystemControl';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
