@@ -237,9 +237,10 @@ const Auth = () => {
                   <ArrowRight className="w-5 h-5" />
                 </>
               )}
-            </form>
+            </button>
+          </form>
 
-            {/* Toggle */}
+          {/* Toggle */}
             <div className="mt-6 text-center">
             <button
               onClick={() => setIsLogin(!isLogin)}
