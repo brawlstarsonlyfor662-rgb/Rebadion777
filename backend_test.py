@@ -5,7 +5,7 @@ import time
 from datetime import datetime
 
 class ProductivitySystemTester:
-    def __init__(self, base_url="https://neural-boost-1.preview.emergentagent.com"):
+    def __init__(self, base_url="https://quest-rush.preview.emergentagent.com"):
         self.base_url = f"{base_url}/api"
         self.token = None
         self.user_id = None
