@@ -128,7 +128,7 @@ const LandingPage = () => {
               {
                 icon: <Target className="w-8 h-8" />,
                 title: 'Dopamine Tasks',
-                description: 'Micro-tasks with instant XP rewards. Every win = dopamine hit.',
+                description: 'Break study into micro-wins (2-10 min). Complete task → instant XP → dopamine hit. Your brain gets addicted to learning.',
                 color: '#00F0FF'
               },
               {
