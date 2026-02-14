@@ -125,3 +125,81 @@ def calculate_discipline_score(completed_tasks: int, missed_tasks: int, streak: 
     
     final_score = base_score + streak_bonus + focus_bonus
     return max(0, min(100, final_score))
+
+# Grading System
+def calculate_grade(score_percentage: float) -> dict:
+    """Calculate grade based on percentage (3 significant figures)"""
+    # Round to 3 significant figures
+    score = round(score_percentage, 1)
+    
+    if score >= 95.0:
+        grade = "A*"
+        xp_multiplier = 2.0
+    elif score >= 85.0:
+        grade = "A"
+        xp_multiplier = 1.5
+    elif score >= 70.0:
+        grade = "B"
+        xp_multiplier = 1.2
+    elif score >= 50.0:
+        grade = "C"
+        xp_multiplier = 1.0
+    elif score >= 40.0:
+        grade = "D"
+        xp_multiplier = 0.5
+    else:
+        grade = "F"
+        xp_multiplier = 0.0  # No XP for F
+        
+    # Calculate penalties
+    xp_penalty = 0
+    extra_quests = 0
+    
+    if score < 50.0:
+        # Big penalty for scoring lower than C
+        xp_penalty = int((50.0 - score) * 10)  # 10 XP per % below 50
+        extra_quests = max(1, int((50.0 - score) / 10))  # More quests as score decreases
+        
+    return {
+        "grade": grade,
+        "score": score,
+        "xp_multiplier": xp_multiplier,
+        "xp_penalty": xp_penalty,
+        "extra_daily_quests": extra_quests
+    }
+
+# AI Exam Question Generator
+async def generate_exam_questions(subject: str, difficulty_level: int, question_count: int = 5) -> list:
+    """Generate AI exam questions based on difficulty (scales with level)"""
+    from ai_coach import AICoach
+    
+    coach = AICoach()
+    
+    difficulty_map = {
+        1: "beginner - basic concepts",
+        2: "intermediate - practical application",
+        3: "advanced - complex problem solving",
+        4: "expert - theoretical depth",
+        5: "master - research level"
+    }
+    
+    # Scale difficulty with level (1-1000 maps to 1-5 difficulty)
+    scaled_difficulty = min(5, max(1, (difficulty_level // 200) + 1))
+    difficulty_desc = difficulty_map[scaled_difficulty]
+    
+    prompt = f"""Generate {question_count} multiple-choice exam questions for {subject} at {difficulty_desc} level.
+    
+    Format each question as:
+    Q#. [Question text]
+    A) [Option A]
+    B) [Option B]
+    C) [Option C]
+    D) [Option D]
+    Correct: [A/B/C/D]
+    
+    Make questions progressively harder. Focus on understanding, not just memorization."""
+    
+    response = await coach.get_response(prompt, "strategic")
+    
+    # Parse the response into structured questions
+    return response
