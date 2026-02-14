@@ -1,0 +1,20 @@
+{
+  "name": "levelup-backend",
+  "version": "1.0.0",
+  "description": "Level Up - Dopamine-Optimized Productivity System Backend",
+  "main": "server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "dependencies": {
+    "fastify": "^4.25.0",
+    "@fastify/cors": "^8.5.0",
+    "@fastify/jwt": "^8.0.0",
+    "mongodb": "^6.3.0",
+    "bcryptjs": "^2.4.3",
+    "dotenv": "^16.3.1",
+    "uuid": "^9.0.1"
+  }
+}
