@@ -218,8 +218,117 @@ const LandingPage = () => {
           <p style={{ fontFamily: 'JetBrains Mono, monospace' }}>
             © 2026 LEVEL UP SYSTEM • BUILD DISCIPLINE • DESTROY PROCRASTINATION
           </p>
+          <div className="mt-2 flex items-center justify-center gap-4 text-xs">
+            <Link to="/auth" className="hover:text-[#00F0FF] transition-colors">Join Now</Link>
+            <span>•</span>
+            <button onClick={() => setShowLearnMore(true)} className="hover:text-[#00F0FF] transition-colors">About</button>
+            <span>•</span>
+            <Link to="/system-control" className="hover:text-[#FF0000] transition-colors opacity-50 hover:opacity-100">
+              <Shield className="w-3 h-3 inline-block" />
+            </Link>
+          </div>
         </div>
       </footer>
+
+      {/* Learn More Modal */}
+      {showLearnMore && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          onClick={() => setShowLearnMore(false)}
+          className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+          data-testid="learn-more-modal"
+        >
+          <motion.div
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            onClick={(e) => e.stopPropagation()}
+            className="glass-card p-8 max-w-3xl w-full max-h-[80vh] overflow-y-auto"
+          >
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-4xl font-black uppercase neon-glow" style={{ fontFamily: 'Orbitron, sans-serif' }}>
+                About Level Up
+              </h2>
+              <button
+                onClick={() => setShowLearnMore(false)}
+                className="text-[#94A3B8] hover:text-white text-2xl"
+              >
+                ×
+              </button>
+            </div>
+
+            <div className="space-y-6 text-[#94A3B8]">
+              <div>
+                <h3 className="text-xl font-bold text-[#00F0FF] mb-3" style={{ fontFamily: 'Orbitron, sans-serif' }}>
+                  THE PROBLEM
+                </h3>
+                <p className="leading-relaxed">
+                  Traditional productivity apps are boring. Students procrastinate because studying doesn't trigger dopamine. 
+                  Your brain craves instant rewards, but learning feels like delayed gratification. Result? You scroll TikTok instead of studying.
+                </p>
+              </div>
+
+              <div>
+                <h3 className="text-xl font-bold text-[#FF0099] mb-3" style={{ fontFamily: 'Orbitron, sans-serif' }}>
+                  THE SOLUTION
+                </h3>
+                <p className="leading-relaxed">
+                  Level Up rewires your brain by gamifying productivity. Every completed task triggers a dopamine hit with XP, 
+                  level-ups, achievements, and visual feedback. Your brain starts craving study sessions like it craves social media.
+                </p>
+              </div>
+
+              <div>
+                <h3 className="text-xl font-bold text-[#39FF14] mb-3" style={{ fontFamily: 'Orbitron, sans-serif' }}>
+                  HOW IT WORKS
+                </h3>
+                <ul className="space-y-2 leading-relaxed">
+                  <li><strong className="text-[#00F0FF]">1. Micro-Tasks:</strong> Break studying into 2-10 minute wins</li>
+                  <li><strong className="text-[#7000FF]">2. Instant Rewards:</strong> Complete task → Get XP → Dopamine release</li>
+                  <li><strong className="text-[#FF0099]">3. Build Streaks:</strong> Daily consistency = XP multipliers (up to 3x)</li>
+                  <li><strong className="text-[#39FF14]">4. Level Up:</strong> Watch yourself grow from Level 1 → Level 100+</li>
+                  <li><strong className="text-[#FAFF00]">5. AI Coaching:</strong> Get personalized motivation and strategy</li>
+                </ul>
+              </div>
+
+              <div>
+                <h3 className="text-xl font-bold text-[#7000FF] mb-3" style={{ fontFamily: 'Orbitron, sans-serif' }}>
+                  REAL STATS
+                </h3>
+                <div className="grid grid-cols-3 gap-4">
+                  <div className="text-center p-4 bg-[#00F0FF]/10 rounded-lg border border-[#00F0FF]/30">
+                    <div className="text-3xl font-black text-[#00F0FF]" style={{ fontFamily: 'Orbitron, sans-serif' }}>
+                      {stats.total_users}+
+                    </div>
+                    <div className="text-xs uppercase mt-2">Active Warriors</div>
+                  </div>
+                  <div className="text-center p-4 bg-[#FF0099]/10 rounded-lg border border-[#FF0099]/30">
+                    <div className="text-3xl font-black text-[#FF0099]" style={{ fontFamily: 'Orbitron, sans-serif' }}>
+                      {stats.completed_tasks}+
+                    </div>
+                    <div className="text-xs uppercase mt-2">Tasks Crushed</div>
+                  </div>
+                  <div className="text-center p-4 bg-[#39FF14]/10 rounded-lg border border-[#39FF14]/30">
+                    <div className="text-3xl font-black text-[#39FF14]" style={{ fontFamily: 'Orbitron, sans-serif' }}>
+                      {stats.success_rate}%
+                    </div>
+                    <div className="text-xs uppercase mt-2">Success Rate</div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="pt-6 flex justify-center">
+                <Link to="/auth" onClick={() => setShowLearnMore(false)}>
+                  <button className="cyber-button text-lg px-12 py-4">
+                    <Zap className="inline-block mr-2 w-5 h-5" />
+                    Start Your Journey
+                  </button>
+                </Link>
+              </div>
+            </div>
+          </motion.div>
+        </motion.div>
+      )}
     </div>
   );
 };
