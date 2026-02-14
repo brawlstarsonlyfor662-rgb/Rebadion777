@@ -678,7 +678,9 @@ async def get_daily_quests(credentials: HTTPAuthorizationCredentials = Depends(s
             "type": template['type']
         }
         await db.daily_quests.insert_one(quest)
-        quests.append(quest)
+        # Exclude MongoDB _id when appending to response
+        quest_response = {k: v for k, v in quest.items() if k != '_id'}
+        quests.append(quest_response)
     
     return {"quests": quests, "date": today, "extra_quests": extra_quests}
 
