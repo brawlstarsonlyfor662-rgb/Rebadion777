@@ -933,6 +933,124 @@ async def delete_user(
     
     return {"success": True, "message": "User deleted"}
 
+@api_router.post("/system/users/{user_id}/award-xp")
+async def award_xp(
+    user_id: str,
+    xp_amount: int,
+    credentials: HTTPAuthorizationCredentials = Depends(security)
+):
+    """Award XP to a user (admin only)"""
+    admin = await get_current_admin(credentials)
+    
+    user_data = await db.users.find_one({"id": user_id}, {"_id": 0})
+    if not user_data:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    from gamification import calculate_level_from_xp, xp_for_next_level
+    
+    new_total_xp = user_data['total_xp'] + xp_amount
+    new_level = calculate_level_from_xp(new_total_xp)
+    
+    await db.users.update_one(
+        {"id": user_id},
+        {"$set": {
+            "total_xp": new_total_xp,
+            "xp": new_total_xp % xp_for_next_level(new_level),
+            "level": new_level
+        }}
+    )
+    
+    return {"success": True, "xp_awarded": xp_amount, "new_level": new_level}
+
+@api_router.post("/system/users/{user_id}/ban")
+async def ban_user(
+    user_id: str,
+    duration_days: int,
+    credentials: HTTPAuthorizationCredentials = Depends(security)
+):
+    """Ban a user temporarily (admin only)"""
+    admin = await get_current_admin(credentials)
+    
+    if not admin.is_super_admin:
+        raise HTTPException(status_code=403, detail="Only super admins can ban users")
+    
+    ban_until = datetime.now(timezone.utc) + timedelta(days=duration_days)
+    
+    await db.users.update_one(
+        {"id": user_id},
+        {"$set": {"banned": True, "ban_until": ban_until.isoformat()}}
+    )
+    
+    return {"success": True, "banned_until": ban_until.isoformat()}
+
+@api_router.post("/system/users/{user_id}/reset")
+async def reset_user_progress(
+    user_id: str,
+    credentials: HTTPAuthorizationCredentials = Depends(security)
+):
+    """Reset user progress (admin only)"""
+    admin = await get_current_admin(credentials)
+    
+    if not admin.is_super_admin:
+        raise HTTPException(status_code=403, detail="Only super admins can reset progress")
+    
+    # Reset user stats
+    await db.users.update_one(
+        {"id": user_id},
+        {"$set": {
+            "level": 1,
+            "xp": 0,
+            "total_xp": 0,
+            "current_streak": 0,
+            "discipline_score": 50
+        }}
+    )
+    
+    # Delete all user data
+    await db.tasks.delete_many({"user_id": user_id})
+    await db.skill_trees.delete_many({"user_id": user_id})
+    await db.achievements.delete_many({"user_id": user_id})
+    await db.exams.delete_many({"user_id": user_id})
+    
+    return {"success": True, "message": "User progress reset"}
+
+@api_router.get("/system/analytics/export")
+async def export_analytics(
+    format: str,  # 'csv' or 'json'
+    credentials: HTTPAuthorizationCredentials = Depends(security)
+):
+    """Export system analytics (admin only)"""
+    admin = await get_current_admin(credentials)
+    
+    # Get all users with stats
+    users = await db.users.find({}, {"_id": 0, "hashed_password": 0}).to_list(1000)
+    
+    if format == 'json':
+        return {"users": users, "total": len(users)}
+    
+    # CSV format
+    import csv
+    import io
+    
+    output = io.StringIO()
+    writer = csv.writer(output)
+    
+    # Header
+    writer.writerow(['Username', 'Email', 'Level', 'Total XP', 'Streak', 'Discipline'])
+    
+    # Data
+    for user in users:
+        writer.writerow([
+            user.get('username', ''),
+            user.get('email', ''),
+            user.get('level', 0),
+            user.get('total_xp', 0),
+            user.get('current_streak', 0),
+            user.get('discipline_score', 0)
+        ])
+    
+    return {"csv": output.getvalue()}
+
 # Include the router
 app.include_router(api_router)
 
