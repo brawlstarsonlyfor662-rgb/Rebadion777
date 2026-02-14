@@ -1,14 +1,16 @@
 import React, { useState, useContext } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { toast } from 'sonner';
 import { AuthContext } from '../App';
-import { Mail, Lock, User, ArrowRight } from 'lucide-react';
+import { Mail, Lock, User, ArrowRight, AlertCircle, CheckCircle } from 'lucide-react';
 
 const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [credentials, setCredentials] = useState({ username: '', password: '' });
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -20,6 +22,7 @@ const Auth = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
+    setError('');
 
     try {
       const endpoint = isLogin ? '/auth/login' : '/auth/signup';
@@ -28,7 +31,20 @@ const Auth = () => {
       login(response.data.access_token, response.data.user);
       navigate('/dashboard');
     } catch (error) {
-      toast.error(error.response?.data?.detail || 'Authentication failed');
+      const errorMsg = error.response?.data?.detail || 'Authentication failed';
+      
+      // Detailed error handling
+      if (errorMsg.includes('Invalid credentials')) {
+        setError('❌ Invalid email or password. Please check and try again.');
+      } else if (errorMsg.includes('already registered')) {
+        setError('⚠️ This email is already registered. Try logging in instead.');
+      } else if (errorMsg.includes('not found')) {
+        setError('❌ Account not found. Please sign up first.');
+      } else {
+        setError(`❌ ${errorMsg}`);
+      }
+      
+      toast.error(errorMsg);
     } finally {
       setLoading(false);
     }
