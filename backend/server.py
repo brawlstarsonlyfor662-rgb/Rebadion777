@@ -314,11 +314,14 @@ async def start_focus_session(
     await db.focus_sessions.insert_one(session_dict)
     return session
 
+class FocusSessionEnd(BaseModel):
+    duration_minutes: int
+    successful: bool
+
 @api_router.patch("/focus-sessions/{session_id}/end")
 async def end_focus_session(
     session_id: str,
-    duration_minutes: int,
-    successful: bool,
+    data: FocusSessionEnd,
     credentials: HTTPAuthorizationCredentials = Depends(security)
 ):
     user = await get_current_user(credentials, db)
@@ -327,8 +330,8 @@ async def end_focus_session(
         {"id": session_id, "user_id": user.id},
         {"$set": {
             "end_time": datetime.now(timezone.utc).isoformat(),
-            "duration_minutes": duration_minutes,
-            "successful": successful
+            "duration_minutes": data.duration_minutes,
+            "successful": data.successful
         }}
     )
     
