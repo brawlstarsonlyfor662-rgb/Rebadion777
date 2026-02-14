@@ -11,14 +11,16 @@ def calculate_xp_reward(difficulty: int, estimated_minutes: int, streak_multipli
     return total
 
 def calculate_level_from_xp(total_xp: int) -> int:
-    """Calculate level from total XP (exponential growth)"""
+    """Calculate level from total XP (exponential growth up to level 1000)"""
     # Level formula: level = sqrt(total_xp / 100) + 1
     import math
     level = int(math.sqrt(total_xp / 100)) + 1
-    return max(1, level)
+    return max(1, min(1000, level))  # Cap at 1000
 
 def xp_for_next_level(current_level: int) -> int:
     """XP needed to reach next level"""
+    if current_level >= 1000:
+        return 0  # Max level reached
     return (current_level ** 2) * 100
 
 # Streak calculation
