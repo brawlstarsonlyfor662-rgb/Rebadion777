@@ -90,6 +90,10 @@ class FocusSession(FocusSessionCreate):
     duration_minutes: int = 0
     successful: bool = False
 
+class FocusSessionEnd(BaseModel):
+    duration_minutes: int
+    successful: bool
+
 # AI Coach Models
 class ChatMessage(BaseModel):
     role: str  # user or assistant
