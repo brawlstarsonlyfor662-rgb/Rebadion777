@@ -12,8 +12,8 @@ from typing import List, Optional
 from models import (
     User, UserCreate, UserLogin, Token, Task, TaskCreate,
     SkillTreeProgress, Achievement, FocusSession, FocusSessionCreate,
-    ChatMessage, CoachChatRequest, CoachChatResponse, AnalyticsData,
-    BossChallenge
+    FocusSessionEnd, ChatMessage, CoachChatRequest, CoachChatResponse,
+    AnalyticsData, BossChallenge
 )
 from auth import (
     verify_password, get_password_hash, create_access_token,
