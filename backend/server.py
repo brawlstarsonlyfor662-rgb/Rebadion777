@@ -721,7 +721,9 @@ async def get_weekly_quests(credentials: HTTPAuthorizationCredentials = Depends(
             "type": template['type']
         }
         await db.weekly_quests.insert_one(quest)
-        quests.append(quest)
+        # Exclude MongoDB _id when appending to response
+        quest_response = {k: v for k, v in quest.items() if k != '_id'}
+        quests.append(quest_response)
     
     return {"quests": quests, "week": week_num}
 
