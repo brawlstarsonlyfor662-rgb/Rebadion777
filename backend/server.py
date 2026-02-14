@@ -517,6 +517,289 @@ async def complete_boss(
     
     return {"success": True, "xp_gained": xp_gained, "level_up": new_level > user.level}
 
+# Enhanced Boss Challenge with AI Exams
+@api_router.get("/boss-challenge/{challenge_id}/generate-exam")
+async def generate_boss_exam(
+    challenge_id: str,
+    credentials: HTTPAuthorizationCredentials = Depends(security)
+):
+    """Generate AI exam questions for boss challenge"""
+    user = await get_current_user(credentials, db)
+    
+    challenge = await db.boss_challenges.find_one({"id": challenge_id, "user_id": user.id}, {"_id": 0})
+    if not challenge:
+        raise HTTPException(status_code=404, detail="Challenge not found")
+    
+    # Generate exam questions based on user level
+    from gamification import generate_exam_questions
+    questions = await generate_exam_questions("General Knowledge", user.level, 5)
+    
+    # Store exam in database
+    exam_data = {
+        "id": str(uuid.uuid4()),
+        "user_id": user.id,
+        "challenge_id": challenge_id,
+        "questions": questions,
+        "created_at": datetime.now(timezone.utc).isoformat(),
+        "submitted": False
+    }
+    
+    await db.exams.insert_one(exam_data)
+    
+    return {"exam_id": exam_data["id"], "questions": questions}
+
+@api_router.post("/boss-challenge/submit-exam")
+async def submit_boss_exam(
+    exam_id: str,
+    answers: dict,
+    credentials: HTTPAuthorizationCredentials = Depends(security)
+):
+    """Submit exam answers and calculate grade"""
+    user = await get_current_user(credentials, db)
+    
+    exam = await db.exams.find_one({"id": exam_id, "user_id": user.id}, {"_id": 0})
+    if not exam:
+        raise HTTPException(status_code=404, detail="Exam not found")
+    
+    if exam['submitted']:
+        raise HTTPException(status_code=400, detail="Exam already submitted")
+    
+    # Calculate score (mock - in real implementation, validate against correct answers)
+    total_questions = 5
+    correct_answers = len(answers)  # Simplified
+    score_percentage = (correct_answers / total_questions) * 100
+    
+    from gamification import calculate_grade
+    grade_data = calculate_grade(score_percentage)
+    
+    # Calculate XP
+    challenge = await db.boss_challenges.find_one({"id": exam['challenge_id']}, {"_id": 0})
+    base_xp = challenge['xp_reward']
+    final_xp = int(base_xp * grade_data['xp_multiplier'])
+    xp_gained = final_xp - grade_data['xp_penalty']
+    
+    # Update user XP
+    new_total_xp = max(0, user.total_xp + xp_gained - grade_data['xp_penalty'])
+    from gamification import calculate_level_from_xp, xp_for_next_level
+    new_level = calculate_level_from_xp(new_total_xp)
+    
+    await db.users.update_one(
+        {"id": user.id},
+        {"$set": {
+            "total_xp": new_total_xp,
+            "xp": new_total_xp % xp_for_next_level(new_level),
+            "level": new_level
+        }}
+    )
+    
+    # Mark exam as submitted
+    await db.exams.update_one(
+        {"id": exam_id},
+        {"$set": {
+            "submitted": True,
+            "score": score_percentage,
+            "grade": grade_data['grade'],
+            "xp_gained": xp_gained,
+            "submitted_at": datetime.now(timezone.utc).isoformat()
+        }}
+    )
+    
+    # Mark boss challenge complete
+    await db.boss_challenges.update_one(
+        {"id": exam['challenge_id']},
+        {"$set": {"completed": True, "completed_at": datetime.now(timezone.utc).isoformat()}}
+    )
+    
+    return {
+        "success": True,
+        "score": grade_data['score'],
+        "grade": grade_data['grade'],
+        "xp_gained": xp_gained,
+        "xp_penalty": grade_data['xp_penalty'],
+        "extra_quests": grade_data['extra_daily_quests'],
+        "level_up": new_level > user.level,
+        "new_level": new_level
+    }
+
+# Daily & Weekly Quests
+@api_router.get("/quests/daily")
+async def get_daily_quests(credentials: HTTPAuthorizationCredentials = Depends(security)):
+    """Get today's daily quests"""
+    user = await get_current_user(credentials, db)
+    today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    
+    # Check if quests exist for today
+    existing_quests = await db.daily_quests.find({"user_id": user.id, "date": today}, {"_id": 0}).to_list(10)
+    
+    if existing_quests:
+        return {"quests": existing_quests, "date": today}
+    
+    # Generate new daily quests
+    base_quest_count = 3
+    
+    # Add extra quests if user performed poorly
+    recent_exam = await db.exams.find_one(
+        {"user_id": user.id, "submitted": True},
+        {"_id": 0},
+        sort=[("submitted_at", -1)]
+    )
+    
+    extra_quests = 0
+    if recent_exam and recent_exam.get('score', 100) < 50:
+        from gamification import calculate_grade
+        grade_data = calculate_grade(recent_exam['score'])
+        extra_quests = grade_data['extra_daily_quests']
+    
+    total_quests = base_quest_count + extra_quests
+    
+    quest_templates = [
+        {"title": "Complete 3 Study Tasks", "xp_reward": 50, "target": 3, "type": "tasks"},
+        {"title": "Focus for 30 minutes", "xp_reward": 40, "target": 30, "type": "focus"},
+        {"title": "Maintain your streak", "xp_reward": 30, "target": 1, "type": "streak"},
+        {"title": "Level up one skill tree", "xp_reward": 60, "target": 1, "type": "skill"},
+        {"title": "Complete AI Study session", "xp_reward": 50, "target": 1, "type": "ai_study"},
+    ]
+    
+    import random
+    selected_quests = random.sample(quest_templates, min(total_quests, len(quest_templates)))
+    
+    quests = []
+    for template in selected_quests:
+        quest = {
+            "id": str(uuid.uuid4()),
+            "user_id": user.id,
+            "date": today,
+            "title": template['title'],
+            "xp_reward": template['xp_reward'],
+            "target": template['target'],
+            "progress": 0,
+            "completed": False,
+            "type": template['type']
+        }
+        await db.daily_quests.insert_one(quest)
+        quests.append(quest)
+    
+    return {"quests": quests, "date": today, "extra_quests": extra_quests}
+
+@api_router.get("/quests/weekly")
+async def get_weekly_quests(credentials: HTTPAuthorizationCredentials = Depends(security)):
+    """Get this week's quests"""
+    user = await get_current_user(credentials, db)
+    
+    # Get week number
+    today = datetime.now(timezone.utc)
+    week_num = today.strftime("%Y-W%W")
+    
+    # Check existing
+    existing = await db.weekly_quests.find({"user_id": user.id, "week": week_num}, {"_id": 0}).to_list(10)
+    
+    if existing:
+        return {"quests": existing, "week": week_num}
+    
+    # Generate weekly quests
+    weekly_templates = [
+        {"title": "Complete 20 tasks this week", "xp_reward": 200, "target": 20, "type": "tasks"},
+        {"title": "Achieve 7-day streak", "xp_reward": 300, "target": 7, "type": "streak"},
+        {"title": "Complete 3 Boss Challenges", "xp_reward": 250, "target": 3, "type": "boss"},
+        {"title": "Earn 1000 XP this week", "xp_reward": 150, "target": 1000, "type": "xp"},
+    ]
+    
+    quests = []
+    for template in weekly_templates:
+        quest = {
+            "id": str(uuid.uuid4()),
+            "user_id": user.id,
+            "week": week_num,
+            "title": template['title'],
+            "xp_reward": template['xp_reward'],
+            "target": template['target'],
+            "progress": 0,
+            "completed": False,
+            "type": template['type']
+        }
+        await db.weekly_quests.insert_one(quest)
+        quests.append(quest)
+    
+    return {"quests": quests, "week": week_num}
+
+@api_router.post("/quests/{quest_id}/complete")
+async def complete_quest(
+    quest_id: str,
+    quest_type: str,  # 'daily' or 'weekly'
+    credentials: HTTPAuthorizationCredentials = Depends(security)
+):
+    """Complete a quest"""
+    user = await get_current_user(credentials, db)
+    
+    collection = db.daily_quests if quest_type == 'daily' else db.weekly_quests
+    
+    quest = await collection.find_one({"id": quest_id, "user_id": user.id}, {"_id": 0})
+    if not quest:
+        raise HTTPException(status_code=404, detail="Quest not found")
+    
+    if quest['completed']:
+        raise HTTPException(status_code=400, detail="Quest already completed")
+    
+    # Mark complete
+    await collection.update_one(
+        {"id": quest_id},
+        {"$set": {"completed": True, "progress": quest['target']}}
+    )
+    
+    # Award XP
+    from gamification import calculate_level_from_xp, xp_for_next_level
+    new_total_xp = user.total_xp + quest['xp_reward']
+    new_level = calculate_level_from_xp(new_total_xp)
+    
+    await db.users.update_one(
+        {"id": user.id},
+        {"$set": {
+            "total_xp": new_total_xp,
+            "xp": new_total_xp % xp_for_next_level(new_level),
+            "level": new_level
+        }}
+    )
+    
+    return {
+        "success": True,
+        "xp_gained": quest['xp_reward'],
+        "level_up": new_level > user.level,
+        "new_level": new_level
+    }
+
+# YouTube Learning Integration
+@api_router.get("/learning/youtube")
+async def search_youtube_videos(
+    subject: str,
+    topic: str,
+    credentials: HTTPAuthorizationCredentials = Depends(security)
+):
+    """Search YouTube for educational videos"""
+    # In production, use YouTube Data API
+    # For now, return curated links based on subject
+    
+    video_database = {
+        "math": [
+            {"title": "Algebra Basics", "url": "https://youtube.com/watch?v=example1", "channel": "Khan Academy"},
+            {"title": "Calculus Fundamentals", "url": "https://youtube.com/watch?v=example2", "channel": "3Blue1Brown"},
+        ],
+        "physics": [
+            {"title": "Classical Mechanics", "url": "https://youtube.com/watch?v=example3", "channel": "MIT OpenCourseWare"},
+            {"title": "Quantum Physics", "url": "https://youtube.com/watch?v=example4", "channel": "PBS Space Time"},
+        ],
+        "programming": [
+            {"title": "Python Tutorial", "url": "https://youtube.com/watch?v=example5", "channel": "freeCodeCamp"},
+            {"title": "JavaScript Basics", "url": "https://youtube.com/watch?v=example6", "channel": "Traversy Media"},
+        ]
+    }
+    
+    subject_lower = subject.lower()
+    videos = video_database.get(subject_lower, [
+        {"title": f"{subject} - {topic}", "url": f"https://youtube.com/results?search_query={subject}+{topic}", "channel": "Search Results"}
+    ])
+    
+    return {"videos": videos, "subject": subject, "topic": topic}
+
 # ============= ADMIN ROUTES (Hidden) =============
 # Helper function for admin auth
 async def get_current_admin(credentials: HTTPAuthorizationCredentials = Depends(security)) -> Admin:
