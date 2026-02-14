@@ -314,10 +314,6 @@ async def start_focus_session(
     await db.focus_sessions.insert_one(session_dict)
     return session
 
-class FocusSessionEnd(BaseModel):
-    duration_minutes: int
-    successful: bool
-
 @api_router.patch("/focus-sessions/{session_id}/end")
 async def end_focus_session(
     session_id: str,
