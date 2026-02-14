@@ -18,6 +18,7 @@ const Layout = ({ children }) => {
     { icon: <Trophy className="w-5 h-5" />, label: 'Achievements', path: '/achievements' },
     { icon: <Swords className="w-5 h-5" />, label: 'Boss', path: '/boss-challenge' },
     { icon: <MessageSquare className="w-5 h-5" />, label: 'AI Coach', path: '/ai-coach' },
+    { icon: <Sparkles className="w-5 h-5" />, label: 'AI Study', path: '/ai-study' },
     { icon: <Crosshair className="w-5 h-5" />, label: 'Focus', path: '/focus' },
     { icon: <TrendingUp className="w-5 h-5" />, label: 'Analytics', path: '/analytics' },
   ];
