@@ -93,9 +93,9 @@ const LandingPage = () => {
             className="mt-20 grid grid-cols-3 gap-8 max-w-3xl mx-auto"
           >
             {[
-              { value: '10K+', label: 'Warriors' },
-              { value: '1M+', label: 'Tasks Completed' },
-              { value: '95%', label: 'Success Rate' },
+              { value: `${stats.total_users}+`, label: 'Warriors' },
+              { value: `${stats.completed_tasks}+`, label: 'Tasks Completed' },
+              { value: `${stats.success_rate}%`, label: 'Success Rate' },
             ].map((stat, i) => (
               <div key={i} className="text-center" data-testid={`stat-${i}`}>
                 <div className="text-4xl font-black text-[#00F0FF] mb-2" style={{ fontFamily: 'Orbitron, sans-serif' }}>
