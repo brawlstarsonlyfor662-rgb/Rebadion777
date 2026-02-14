@@ -200,9 +200,14 @@ const getCurrentUser = async (request) => {
 // Helper to get current admin
 const getCurrentAdmin = async (request) => {
   const adminId = request.user.adminId;
-  const admin = await db.collection('admins').findOne({ id: adminId }, { projection: { _id: 0, hashedPassword: 0 } });
+  const admin = await db.collection('admins').findOne({ id: adminId }, { projection: { _id: 0 } });
   if (!admin) throw { statusCode: 401, message: 'Admin not found' };
-  return admin;
+  // Normalize field names
+  return {
+    ...admin,
+    isSuperAdmin: admin.isSuperAdmin ?? admin.is_super_admin ?? false,
+    hashedPassword: admin.hashedPassword || admin.hashed_password
+  };
 };
 
 // ==================== ROUTES ====================
