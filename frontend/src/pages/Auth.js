@@ -250,7 +250,7 @@ const Auth = () => {
               {isLogin ? "Don't have an account? Sign up" : 'Already have an account? Login'}
             </button>
           </div>
-        </div>
+        </motion.div>
       </motion.div>
     </div>
   );
