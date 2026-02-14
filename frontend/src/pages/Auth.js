@@ -237,11 +237,10 @@ const Auth = () => {
                   <ArrowRight className="w-5 h-5" />
                 </>
               )}
-            </button>
-          </form>
+            </form>
 
-          {/* Toggle */}
-          <div className="mt-6 text-center">
+            {/* Toggle */}
+            <div className="mt-6 text-center">
             <button
               onClick={() => setIsLogin(!isLogin)}
               className="text-[#00F0FF] hover:text-[#7000FF] transition-colors"
