@@ -8,6 +8,7 @@ import logging
 from pathlib import Path
 from datetime import datetime, timezone, timedelta
 from typing import List, Optional
+import uuid
 
 from models import (
     User, UserCreate, UserLogin, Token, Task, TaskCreate,
