@@ -77,6 +77,7 @@ const LandingPage = () => {
             </Link>
             <button 
               data-testid="learn-more-btn"
+              onClick={() => setShowLearnMore(true)}
               className="bg-transparent border-2 border-[#00F0FF] text-[#00F0FF] font-bold uppercase tracking-wider px-8 py-3 rounded-md hover:bg-[#00F0FF]/10 transition-all"
               style={{ fontFamily: 'Orbitron, sans-serif' }}
             >
